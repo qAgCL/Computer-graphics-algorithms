@@ -70,6 +70,6 @@ namespace Infrastructure.Models
             W = w;
         }
 
-        public static explicit operator Vector4(GeometricVertex vector) => new (vector.X, vector.Y, vector.Z, vector.W);
+        public static explicit operator Vector4(GeometricVertex vector) => new (vector.X, vector.Y , vector.Z, vector.W);
     }
 }
