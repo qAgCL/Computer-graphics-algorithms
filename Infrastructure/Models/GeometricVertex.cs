@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Numerics;
 using Infrastructure.Models.Common;
 
 namespace Infrastructure.Models
@@ -9,13 +12,13 @@ namespace Infrastructure.Models
         public const string Name = "v";
         public const int MinArrayLength = 4;
 
-        public double X { get; set; }
-        public double Y { get; set; }
-        public double Z { get; set; }
-        public double W { get; set; } = 1;
+        public float X { get; set; }
+        public float Y { get; set; }
+        public float Z { get; set; }
+        public float W { get; set; } = 1;
 
         public GeometricVertex(){}
-        public GeometricVertex(double x, double y, double z, double w = 1)
+        public GeometricVertex(float x, float y, float z, float w = 1)
         {
             X = x;
             Y = y;
@@ -35,19 +38,19 @@ namespace Infrastructure.Models
                 throw new ArgumentException($"Fist array must be equal {Name}");
             }
 
-            if (!double.TryParse(elements[1], NumberStyles.Any, CultureInfo.InvariantCulture, out var x))
+            if (!float.TryParse(elements[1], NumberStyles.Any, CultureInfo.InvariantCulture, out var x))
             {
-                throw new ArgumentException($"Couldn't convert x element to double");
+                throw new ArgumentException($"Couldn't convert x element to float");
             }
 
-            if (!double.TryParse(elements[2], NumberStyles.Any, CultureInfo.InvariantCulture, out var y))
+            if (!float.TryParse(elements[2], NumberStyles.Any, CultureInfo.InvariantCulture, out var y))
             {
-                throw new ArgumentException($"Couldn't convert y element to double");
+                throw new ArgumentException($"Couldn't convert y element to float");
             }
 
-            if (!double.TryParse(elements[3], NumberStyles.Any, CultureInfo.InvariantCulture, out var z))
+            if (!float.TryParse(elements[3], NumberStyles.Any, CultureInfo.InvariantCulture, out var z))
             {
-                throw new ArgumentException($"Couldn't convert z element to double");
+                throw new ArgumentException($"Couldn't convert z element to float");
             }
 
             X = x;
@@ -59,12 +62,14 @@ namespace Infrastructure.Models
                 return;
             }
 
-            if (!double.TryParse(elements[4], NumberStyles.Any, CultureInfo.InvariantCulture, out var w))
+            if (!float.TryParse(elements[4], NumberStyles.Any, CultureInfo.InvariantCulture, out var w))
             {
-                throw new ArgumentException($"Couldn't convert w element to double");
+                throw new ArgumentException($"Couldn't convert w element to float");
             }
 
             W = w;
         }
+
+        public static explicit operator Vector4(GeometricVertex vector) => new (vector.X, vector.Y, vector.Z, vector.W);
     }
 }

@@ -1,7 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using System.Numerics;
 using Infrastructure.Models;
 using Infrastructure.Reader;
+using Infrastructure.Space;
 
 namespace TestConsoleApp
 {
@@ -9,46 +12,22 @@ namespace TestConsoleApp
     {
         static void Main(string[] args)
         {
-            var objFileReader = new ObjFileReader(@"D:\7 сем\АКГ\test.obj");
+            var objReader = new ObjFileReader(@"D:\7 сем\АКГ\chair.obj");
+            var objModel = objReader.ReadObjModel();
 
-            var objModel = objFileReader.ReadObjModel();
-
-            foreach (var sp in objModel.SpaceVertices)
-            {
-                Console.WriteLine($" u - {sp.U}, v - {sp.V}, w - {sp.W}");
-            }
             
-            Console.WriteLine("--------");
+            var projectionSpace = new ProjectionSpace(1000, 600, 100f, 0.1f);
+            var viewPortSpace = new ViewPortSpace(1000, 600, -15, -15);
+            var viewSpace = new ViewSpace(new Vector3(5, 5, 5), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+            var vectors = objModel.GeometricVertices.Select(vector => (Vector4) vector).ToArray();
 
-            foreach (var sp in objModel.GeometricVertices)
+            var coordinates = vectors.Select(x => Vector4.Transform(Vector4.Transform(Vector4.Transform(x, viewSpace.TransposeMatrix), projectionSpace.TransposeMatrix), viewPortSpace.TransposeMatrix));
+
+            foreach (var cor in coordinates)
             {
-                Console.WriteLine($" x - {sp.X}, y - {sp.Y}, z - {sp.Z}, w - {sp.W}");
+                Console.WriteLine(cor.ToString());
             }
-
-            Console.WriteLine("--------");
-
-            foreach (var sp in objModel.TextureCoordinates)
-            {
-                Console.WriteLine($" u - {sp.U}, v - {sp.V}, w - {sp.W}");
-            }
-
-            Console.WriteLine("--------");
-
-            foreach (var sp in objModel.VertexNormals)
-            {
-                Console.WriteLine($" x - {sp.X}, y - {sp.Y}, z - {sp.Z}");
-            }
-
-
-            Console.WriteLine("--------");
-
-            foreach (var sp in objModel.PolygonalElements)
-            {
-                for (var i = 0; i < sp.GeometricVertices.Count; i++)
-                {
-                    Console.WriteLine($"v - {sp.GeometricVertices[i]}  - vn - {sp.VertexNormals[i]}");
-                }
-            }
+            var vectorPolygons = objModel.PolygonalElements.Where(plg => plg.TextureCoordinates.Count == 0 && plg.VertexNormals.Count == 0);
         }
     }
 }

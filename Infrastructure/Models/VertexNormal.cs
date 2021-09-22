@@ -9,11 +9,11 @@ namespace Infrastructure.Models
         public const string Name = "vn";
         public const int MinArrayLength = 4;
 
-        public double X { get; set; }
-        public double Y { get; set; }
-        public double Z { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
+        public float Z { get; set; }
         public VertexNormal() { }
-        public VertexNormal(double x, double y, double z)
+        public VertexNormal(float x, float y, float z)
         {
             X = x;
             Y = y;
@@ -32,19 +32,19 @@ namespace Infrastructure.Models
                 throw new ArgumentException($"Fist array must be equal {Name}");
             }
 
-            if (!double.TryParse(elements[1], NumberStyles.Any, CultureInfo.InvariantCulture, out var x))
+            if (!float.TryParse(elements[1], NumberStyles.Any, CultureInfo.InvariantCulture, out var x))
             {
-                throw new ArgumentException($"Couldn't convert x element to double");
+                throw new ArgumentException($"Couldn't convert x element to float");
             }
 
-            if (!double.TryParse(elements[2], NumberStyles.Any, CultureInfo.InvariantCulture, out var y))
+            if (!float.TryParse(elements[2], NumberStyles.Any, CultureInfo.InvariantCulture, out var y))
             {
-                throw new ArgumentException($"Couldn't convert y element to double");
+                throw new ArgumentException($"Couldn't convert y element to float");
             }
 
-            if (!double.TryParse(elements[3], NumberStyles.Any, CultureInfo.InvariantCulture, out var z))
+            if (!float.TryParse(elements[3], NumberStyles.Any, CultureInfo.InvariantCulture, out var z))
             {
-                throw new ArgumentException($"Couldn't convert z element to double");
+                throw new ArgumentException($"Couldn't convert z element to float");
             }
 
             X = x;

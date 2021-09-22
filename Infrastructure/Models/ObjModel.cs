@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace Infrastructure.Models
 {
@@ -19,5 +21,7 @@ namespace Infrastructure.Models
             GeometricVertices = new List<GeometricVertex>();
             PolygonalElements = new List<PolygonalElement>();
         }
+ 
+
     }
 }

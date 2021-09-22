@@ -116,6 +116,11 @@ namespace Infrastructure.Models
                 }
                 else
                 {
+                    if (string.IsNullOrEmpty(element) || string.IsNullOrWhiteSpace(element))
+                    {
+                        continue;
+                    }
+
                     var localElements = element.Split(' ');
 
                     foreach (var localElement in localElements)

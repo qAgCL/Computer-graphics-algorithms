@@ -9,12 +9,12 @@ namespace Infrastructure.Models
         public const string Name = "vt";
         public const int MinArrayLength = 2;
 
-        public double U { get; set; }
-        public double V { get; set; }
-        public double W { get; set; }
+        public float U { get; set; }
+        public float V { get; set; }
+        public float W { get; set; }
 
         public TextureCoordinate() { }
-        public TextureCoordinate(double u, double v = 0, double w = 0)
+        public TextureCoordinate(float u, float v = 0, float w = 0)
         {
             U = u;
             V = v;
@@ -33,9 +33,9 @@ namespace Infrastructure.Models
                 throw new ArgumentException($"Fist array must be equal {Name}");
             }
 
-            if (!double.TryParse(elements[1], NumberStyles.Any, CultureInfo.InvariantCulture, out var u))
+            if (!float.TryParse(elements[1], NumberStyles.Any, CultureInfo.InvariantCulture, out var u))
             {
-                throw new ArgumentException($"Couldn't convert u element to double");
+                throw new ArgumentException($"Couldn't convert u element to float");
             }
 
             U = u;
@@ -45,9 +45,9 @@ namespace Infrastructure.Models
                 return;
             }
 
-            if (!double.TryParse(elements[2], NumberStyles.Any, CultureInfo.InvariantCulture, out var v))
+            if (!float.TryParse(elements[2], NumberStyles.Any, CultureInfo.InvariantCulture, out var v))
             {
-                throw new ArgumentException($"Couldn't convert v element to double");
+                throw new ArgumentException($"Couldn't convert v element to float");
             }
 
             V = v;
@@ -57,9 +57,9 @@ namespace Infrastructure.Models
                 return;
             }
 
-            if (!double.TryParse(elements[3], NumberStyles.Any, CultureInfo.InvariantCulture, out var w))
+            if (!float.TryParse(elements[3], NumberStyles.Any, CultureInfo.InvariantCulture, out var w))
             {
-                throw new ArgumentException($"Couldn't convert w element to double");
+                throw new ArgumentException($"Couldn't convert w element to float");
             }
 
             W = w;
