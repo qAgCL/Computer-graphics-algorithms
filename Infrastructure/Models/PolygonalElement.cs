@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Infrastructure.Models.Common;
 
 namespace Infrastructure.Models
 {
-    public class PolygonalElement : IElement
+    public class PolygonalElement
     {
         public const string Name = "f";
         public const int MinArrayLength = 4;
@@ -21,7 +20,7 @@ namespace Infrastructure.Models
             VertexNormals = new List<uint>();
         }
 
-        public void FieldFromStringArray(string[] elements)
+        public static PolygonalElement FieldFromStringArray(string[] elements)
         {
             if (elements.Length < MinArrayLength)
             {
@@ -33,6 +32,7 @@ namespace Infrastructure.Models
                 throw new ArgumentException($"Fist array must be equal {Name}");
             }
 
+            var polygonalElement = new PolygonalElement();
             foreach (var element in elements[1..])
             {
                 var numb = element.Count(x => x.Equals('/'));
@@ -58,8 +58,8 @@ namespace Infrastructure.Models
                                 throw new ArgumentException($"Couldn't convert vt element to uint");
                             }
 
-                            GeometricVertices.Add(v);
-                            TextureCoordinates.Add(vt);
+                            polygonalElement.GeometricVertices.Add(v);
+                            polygonalElement.TextureCoordinates.Add(vt);
                             break;
                         }
                         case 2:
@@ -81,8 +81,8 @@ namespace Infrastructure.Models
                                     throw new ArgumentException($"Couldn't convert vn element to uint");
                                 }
 
-                                GeometricVertices.Add(v);
-                                VertexNormals.Add(vn);
+                                polygonalElement.GeometricVertices.Add(v);
+                                polygonalElement.VertexNormals.Add(vn);
                             }
                             else
                             {
@@ -107,9 +107,9 @@ namespace Infrastructure.Models
                                     throw new ArgumentException($"Couldn't convert vn element to uint");
                                 }
 
-                                GeometricVertices.Add(v);
-                                VertexNormals.Add(vn);
-                                TextureCoordinates.Add(vt);
+                                polygonalElement.GeometricVertices.Add(v);
+                                polygonalElement.VertexNormals.Add(vn);
+                                polygonalElement.TextureCoordinates.Add(vt);
                             }
                             break;
                     }
@@ -130,10 +130,12 @@ namespace Infrastructure.Models
                             throw new ArgumentException($"Couldn't convert v element to uint");
                         }
 
-                        GeometricVertices.Add(v);
+                        polygonalElement.GeometricVertices.Add(v);
                     }
                 }
             }
+
+            return polygonalElement;
         }
     }
 }

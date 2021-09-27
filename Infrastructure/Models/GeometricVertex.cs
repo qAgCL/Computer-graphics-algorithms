@@ -1,32 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Numerics;
-using Infrastructure.Models.Common;
 
 namespace Infrastructure.Models
 {
-    public class GeometricVertex : IElement
+    public static class GeometricVertex
     {
         public const string Name = "v";
         public const int MinArrayLength = 4;
 
-        public float X { get; set; }
-        public float Y { get; set; }
-        public float Z { get; set; }
-        public float W { get; set; } = 1;
-
-        public GeometricVertex(){}
-        public GeometricVertex(float x, float y, float z, float w = 1)
-        {
-            X = x;
-            Y = y;
-            Z = z;
-            W = w;
-        }
-
-        public void FieldFromStringArray(string[] elements)
+        public static Vector4 FieldFromStringArray(string[] elements)
         {
             if (elements.Length < MinArrayLength)
             {
@@ -53,23 +36,14 @@ namespace Infrastructure.Models
                 throw new ArgumentException($"Couldn't convert z element to float");
             }
 
-            X = x;
-            Y = y;
-            Z = z;
-
             if (elements.Length < MinArrayLength + 1)
             {
-                return;
+                return new Vector4(x, y, z, 1);
             }
 
-            if (!float.TryParse(elements[4], NumberStyles.Any, CultureInfo.InvariantCulture, out var w))
-            {
-                throw new ArgumentException($"Couldn't convert w element to float");
-            }
-
-            W = w;
+            return !float.TryParse(elements[4], NumberStyles.Any, CultureInfo.InvariantCulture, out var w)
+                ? throw new ArgumentException($"Couldn't convert w element to float")
+                : new Vector4(x, y, z, w);
         }
-
-        public static explicit operator Vector4(GeometricVertex vector) => new (vector.X, vector.Y , vector.Z, vector.W);
     }
 }

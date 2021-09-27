@@ -1,27 +1,15 @@
 ﻿using System;
 using System.Globalization;
-using Infrastructure.Models.Common;
+using System.Numerics;
 
 namespace Infrastructure.Models
 {
-    public class SpaceVertex : IElement
+    public static class SpaceVertex
     {
         public const string Name = "vp";
         public const int MinArrayLength = 2;
 
-        public float U { get; set; }
-        public float V { get; set; }
-        public float W { get; set; }
-
-        public SpaceVertex() { }
-        public SpaceVertex(float u, float v = 0, float w = 0)
-        {
-            U = u;
-            V = v;
-            W = w;
-        }
-
-        public void FieldFromStringArray(string[] elements)
+        public static Vector3 FieldFromStringArray(string[] elements)
         {
             if (elements.Length < MinArrayLength)
             {
@@ -38,11 +26,9 @@ namespace Infrastructure.Models
                 throw new ArgumentException($"Couldn't convert u element to float");
             }
 
-            U = u;
-
             if (elements.Length < MinArrayLength + 1)
             {
-                return;
+                return new Vector3(u, 0, 0);
             }
 
             if (!float.TryParse(elements[2], NumberStyles.Any, CultureInfo.InvariantCulture, out var v))
@@ -50,11 +36,9 @@ namespace Infrastructure.Models
                 throw new ArgumentException($"Couldn't convert v element to float");
             }
 
-            V = v;
-
             if (elements.Length < MinArrayLength + 2)
             {
-                return;
+                return new Vector3(u, v, 0);
             }
 
             if (!float.TryParse(elements[3], NumberStyles.Any, CultureInfo.InvariantCulture, out var w))
@@ -62,7 +46,7 @@ namespace Infrastructure.Models
                 throw new ArgumentException($"Couldn't convert w element to float");
             }
 
-            W = w;
+            return new Vector3(u, v, w);
         }
     }
 }

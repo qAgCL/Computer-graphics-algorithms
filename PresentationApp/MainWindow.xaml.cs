@@ -28,52 +28,26 @@ namespace PresentationApp
         {
             InitializeComponent();
 
-            var objReader = new ObjFileReader(@"D:\chair.obj");
+            var objReader = new ObjFileReader(@"D:\7 сем\АКГ\test.obj");
             var objModel = objReader.ReadObjModel();
+            objModel.TransformVertices();
+            var points = objModel.CalculatePoints();
 
-            var projectionSpace = new ProjectionSpace(300, 300, 100f, 0.1f);
-            var viewPortSpace = new ViewPortSpace(300, 300, -0.1f, -0.1f);
-            var viewSpace = new ViewSpace(new Vector3(1, 0, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
-            var vectors = objModel.GeometricVertices.Select(vector => (Vector4)vector).ToArray();
-
-            var coordinates = vectors.Select(x => Vector4.Transform(Vector4.Transform(Vector4.Transform(x, viewSpace.TransposeMatrix), projectionSpace.TransposeMatrix), viewPortSpace.TransposeMatrix)).ToArray();
-            foreach (var cor in coordinates)
+            foreach (var po in points)
             {
-                Console.WriteLine(cor.ToString());
-            }
-
-            var vectorPolygons = objModel.PolygonalElements;
-            foreach (var vectorPolygon in vectorPolygons)
-            {
-                for (var i = 0; i < vectorPolygon.GeometricVertices.Count - 1; i++)
+                for (var i = 0; i < po.Count - 1; i++)
                 {
-                    var horL = new Line
+                    var line = new Line
                     {
-                        X1 = coordinates[vectorPolygon.GeometricVertices[i] - 1].X,
-                        X2 = coordinates[vectorPolygon.GeometricVertices[i+1] - 1].X,
-                        Y1 = coordinates[vectorPolygon.GeometricVertices[i] - 1].Y,
-                        Y2 = coordinates[vectorPolygon.GeometricVertices[i+1] - 1].Y,
+                        X1 = po[i].X,
+                        X2 = po[i+1].X,
+                        Y1 = po[i].Y,
+                        Y2 = po[i+1].Y,
                         Stroke = Brushes.Black
                     };
-                    mainGrid.Children.Add(horL);
+                    mainGrid.Children.Add(line);
                 }
             }
-
-            var test = new Line
-            {
-                X1 = 500,
-                X2 = 500,
-                Y1 = 400,
-                Y2 = 500,
-                Stroke = Brushes.Black
-            };
-            mainGrid.Children.Add(test);
-        }
-
-        public class Pair
-        {
-            public Vector4 First { get; set; }
-            public Vector4 Second { get; set; }
         }
     }
 }

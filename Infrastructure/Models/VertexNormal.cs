@@ -1,26 +1,15 @@
 ﻿using System;
 using System.Globalization;
-using Infrastructure.Models.Common;
+using System.Numerics;
 
 namespace Infrastructure.Models
 {
-    public class VertexNormal : IElement
+    public static class VertexNormal 
     {
         public const string Name = "vn";
         public const int MinArrayLength = 4;
 
-        public float X { get; set; }
-        public float Y { get; set; }
-        public float Z { get; set; }
-        public VertexNormal() { }
-        public VertexNormal(float x, float y, float z)
-        {
-            X = x;
-            Y = y;
-            Z = z;
-        }
-
-        public void FieldFromStringArray(string[] elements)
+        public static Vector3 FieldFromStringArray(string[] elements)
         {
             if (elements.Length < MinArrayLength)
             {
@@ -47,9 +36,7 @@ namespace Infrastructure.Models
                 throw new ArgumentException($"Couldn't convert z element to float");
             }
 
-            X = x;
-            Y = y;
-            Z = z;
+            return new Vector3(x, y, z);
         }
     }
 }

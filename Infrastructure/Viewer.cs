@@ -6,7 +6,7 @@ namespace Infrastructure
 {
     public static class Viewer
     {
-        public static List<Vector2> DdaLines(Vector2 coordinate1, Vector2 coordinate2)
+        public static List<Vector2> DdaLines(Vector4 coordinate1, Vector4 coordinate2)
         {
             var l = (float)Math.Max(Math.Abs(Math.Round(coordinate1.X) - Math.Round(coordinate2.X)), Math.Abs(Math.Round(coordinate2.Y) - Math.Round(coordinate2.Y))) + 1;
             var dx = (coordinate2.X - coordinate1.X) / l;

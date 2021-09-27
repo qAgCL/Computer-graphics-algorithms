@@ -14,57 +14,28 @@ namespace TestConsoleApp
     {
         static void Main(string[] args)
         {
-            var objReader = new ObjFileReader(@"D:\Untitled.obj");
-            var objModel = objReader.ReadObjModel();
+            var matrix = new Matrix4x4(1, 2, 3, 4, 8, 1, 7, 3, 1, 2, 3, 4, 8, 1, 7, 3);
+            var vector = new Vector4(1, 2, 3, 4);
 
-            var projectionSpace = new ProjectionSpace(300, 300, 100f, 0.1f);
-            var viewPortSpace = new ViewPortSpace(300, 300, -0.1f, -0.1f);
-            var viewSpace = new ViewSpace(new Vector3(0, 0, 3), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+            var projectionSpace = new ProjectionSpace(600, 600, 100f, 0.1f);
+            var viewPortSpace = new ViewPortSpace(600, 600, -0.1f, -0.1f);
+            var viewSpace = new ViewSpace(new Vector3(1, 2, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+
+            Console.WriteLine(Vector4.Transform(Vector4.Transform(Vector4.Transform(vector, viewSpace.TransposeMatrix), projectionSpace.TransposeMatrix), viewPortSpace.TransposeMatrix));
+            matrix = viewSpace.TransposeMatrix * projectionSpace.TransposeMatrix * viewPortSpace.TransposeMatrix;
+            Console.WriteLine(matrix);
 
 
-            var vectors = objModel.GeometricVertices.Select(vector => (Vector4) vector).ToArray();
+            var test = new Dictionary<uint, Vector3>() {{1, new Vector3(1, 2, 3)}};
 
-            var coordinates = vectors.Select(x => Vector4.Transform(Vector4.Transform(Vector4.Transform(x, viewSpace.TransposeMatrix), projectionSpace.TransposeMatrix), viewPortSpace.TransposeMatrix)).ToArray();
+            var casd = new Dictionary<uint, Vector3>(test);
 
-            foreach (var cor in coordinates)
-            {
-                Console.WriteLine(cor.ToString());
-            }
 
-            var vectorPolygons = objModel.PolygonalElements.Where(plg => plg.TextureCoordinates.Count == 0 && plg.VertexNormals.Count == 0);
-            var points = new List<List<Vector2>>();
-            foreach (var vectorPolygon in vectorPolygons)
-            {
-                var test = new List<Vector2>();
-                var pairs = new List<Pair>();
-                for (var i = 0; i < vectorPolygon.GeometricVertices.Count - 1; i++)
-                {
-                    pairs.Add(new Pair()
-                    {
-                        First = coordinates[vectorPolygon.GeometricVertices[i] -1],
-                        Second = coordinates[vectorPolygon.GeometricVertices[i] - 1]
-                    });
-                }
+            test[1] = new Vector3(3, 4, 6);
 
-                pairs.Add(new Pair()
-                {
-                    First = coordinates[vectorPolygon.GeometricVertices[0] -1],
-                    Second = coordinates[vectorPolygon.GeometricVertices[^1] -1]
-                });
-
-                foreach (var pair in pairs)
-                {
-                    test.AddRange(Viewer.DdaLines(new Vector2(pair.First.X, pair.First.Y), new Vector2(pair.Second.X, pair.Second.Y)));
-                }
-
-                points.Add(test);
-            }
+            Console.WriteLine(test[1]);
+            Console.WriteLine(casd[1]);
         }
 
-        public class Pair
-        {
-            public Vector4 First { get; set; }
-            public Vector4 Second { get; set; }
-        }
     }
 }

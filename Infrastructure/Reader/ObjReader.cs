@@ -26,29 +26,19 @@ namespace Infrastructure.Reader
                 switch (lineElements[0])
                 {
                     case GeometricVertex.Name:
-                        var geometricVertex = new GeometricVertex();
-                        geometricVertex.FieldFromStringArray(lineElements);
-                        objModel.GeometricVertices.Add(geometricVertex);
+                        objModel.GeometricVertices.Add((uint)objModel.GeometricVertices.Count + 1, GeometricVertex.FieldFromStringArray(lineElements));
                         break;
                     case SpaceVertex.Name:
-                        var spaceVertex = new SpaceVertex();
-                        spaceVertex.FieldFromStringArray(lineElements);
-                        objModel.SpaceVertices.Add(spaceVertex);
+                        objModel.SpaceVertices.Add((uint)objModel.SpaceVertices.Count + 1, SpaceVertex.FieldFromStringArray(lineElements));
                         break;
                     case TextureCoordinate.Name:
-                        var textureCoordinate = new TextureCoordinate();
-                        textureCoordinate.FieldFromStringArray(lineElements);
-                        objModel.TextureCoordinates.Add(textureCoordinate);
+                        objModel.TextureCoordinates.Add((uint)objModel.TextureCoordinates.Count + 1, TextureCoordinate.FieldFromStringArray(lineElements));
                         break;
                     case VertexNormal.Name:
-                        var vertexNormal = new VertexNormal();
-                        vertexNormal.FieldFromStringArray(lineElements);
-                        objModel.VertexNormals.Add(vertexNormal);
+                        objModel.VertexNormals.Add((uint)objModel.VertexNormals.Count + 1, VertexNormal.FieldFromStringArray(lineElements));
                         break;
                     case PolygonalElement.Name:
-                        var polygonalElement = new PolygonalElement();
-                        polygonalElement.FieldFromStringArray(lineElements);
-                        objModel.PolygonalElements.Add(polygonalElement);
+                        objModel.PolygonalElements.Add(PolygonalElement.FieldFromStringArray(lineElements));
                         break;
                 }
             }
