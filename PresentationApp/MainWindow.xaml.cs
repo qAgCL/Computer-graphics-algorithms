@@ -1,20 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Infrastructure;
 using Infrastructure.Models;
 using Infrastructure.Reader;
 using Infrastructure.Space;
@@ -30,25 +21,62 @@ namespace PresentationApp
         [DllImport("kernel32.dll", EntryPoint = "RtlMoveMemory")]
         public static extern void CopyMemory(IntPtr destination, IntPtr source, uint length);
         #endregion
+
         private const int PixelHeight = 1000;
         private const int PixelWidth = 1000;
         private const int DpiHeight = 96;
         private const int DpiWidth = 96;
         private const int RgbBytesPerPixel = 4;
-        private WriteableBitmap _bitMap = new(PixelHeight, PixelWidth, DpiHeight, DpiWidth, PixelFormats.Bgr32, null);
-        private readonly byte[] _blankImage = new byte[PixelHeight * PixelWidth * RgbBytesPerPixel];
-        private ObjModel _objModel;
 
-        private unsafe void FastClear()
+        private readonly WriteableBitmap _imageBitMap = new(PixelHeight, PixelWidth, DpiHeight, DpiWidth, PixelFormats.Bgr32, null);
+        private readonly byte[] _whiteImage = new byte[PixelHeight * PixelWidth * RgbBytesPerPixel];
+        private readonly byte[] _image = new byte[PixelHeight * PixelWidth * RgbBytesPerPixel];
+        private readonly ObjModel _model;
+
+        private const float ScaleSpeed = 5f;
+        private const float TranslationSpeed = 10f;
+        private const double AngleSpeed = 0.25f;
+
+        private unsafe void Draw()
         {
-            fixed (byte* b = _blankImage)
+            var points = _model.CalculatePoints();
+
+            fixed (byte* b = _image)
             {
-                CopyMemory(_bitMap.BackBuffer, (IntPtr)b, (uint)_blankImage.Length);
+                var ptr = (IntPtr)b;
+                fixed (byte* clear = _whiteImage)
+                {
+                    CopyMemory(ptr, (IntPtr)clear, (uint)_whiteImage.Length);
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        _imageBitMap.Lock();
+                        _imageBitMap.AddDirtyRect(new Int32Rect(0, 0, _imageBitMap.PixelWidth, _imageBitMap.PixelHeight));
+                        _imageBitMap.Unlock();
+                    });
+                }
+
+                Parallel.ForEach(_model.CalculatePoints(), (point, _) =>
+                {
+                    var column = (int)Math.Round(point.X);
+                    var row = (int)Math.Round(point.Y);
+                    if (column < 0 || row < 0 || column >= PixelWidth || row >= PixelHeight)
+                    {
+                        return;
+                    }
+
+                    var localPtr = ptr;
+                    localPtr += row * PixelWidth * RgbBytesPerPixel;
+                    localPtr += column * RgbBytesPerPixel;
+                    *((int*)localPtr) = 0;
+                });
+
+
+                CopyMemory(_imageBitMap.BackBuffer, (IntPtr)b, (uint)_image.Length);
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    _bitMap.Lock();
-                    _bitMap.AddDirtyRect(new Int32Rect(0, 0, _bitMap.PixelWidth, _bitMap.PixelHeight));
-                    _bitMap.Unlock();
+                    _imageBitMap.Lock();
+                    _imageBitMap.AddDirtyRect(new Int32Rect(0, 0, _imageBitMap.PixelWidth, _imageBitMap.PixelHeight));
+                    _imageBitMap.Unlock();
                 });
             }
         }
@@ -58,106 +86,113 @@ namespace PresentationApp
         {
             InitializeComponent();
             
-            for (int i = 0; i < _blankImage.Length; i++)
+            for (int i = 0; i < _whiteImage.Length; i++)
             {
-                _blankImage[i] = byte.MaxValue;
+                _whiteImage[i] = byte.MaxValue;
+                _image[i] = byte.MaxValue;
+            }
+            unsafe
+            {
+                fixed (byte* b = _whiteImage)
+                {
+                    CopyMemory(_imageBitMap.BackBuffer, (IntPtr)b, (uint)_whiteImage.Length);
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        _imageBitMap.Lock();
+                        _imageBitMap.AddDirtyRect(new Int32Rect(0, 0, _imageBitMap.PixelWidth, _imageBitMap.PixelHeight));
+                        _imageBitMap.Unlock();
+                    });
+                }
             }
 
-            FastClear();
-
-            Image.Source = _bitMap;
+            Image.Source = _imageBitMap;
             Image.Stretch = Stretch.None;
             Image.HorizontalAlignment = HorizontalAlignment.Left;
             Image.VerticalAlignment = VerticalAlignment.Top;
             RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.NearestNeighbor);
             RenderOptions.SetEdgeMode(Image, EdgeMode.Aliased);
 
-            var objReader = new ObjFileReader(@"D:\chair.obj");
-            _objModel = objReader.ReadObjModel();
+            var objReader = new ObjFileReader(@"D:\7 сем\АКГ\mclaren.obj");
+            _model = objReader.ReadObjModel();
 
-            _objModel.Height = PixelHeight;
-            _objModel.Width = PixelWidth;
+            _model.Height = PixelHeight;
+            _model.Width = PixelWidth;
 
-            _objModel.ProjectionSpace = new ProjectionSpace(PixelWidth, PixelHeight, 100f, 0.1f);
-            _objModel.ViewSpace = new ViewSpace(new Vector3(0, 0, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+            _model.ProjectionSpace = new ProjectionSpace(PixelWidth, PixelHeight, 100f, 0.1f);
+            _model.ViewSpace = new ViewSpace(new Vector3(0, 0, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+            ShowModel();
         }
 
         private void ShowModel()
         {
-            _objModel.TransformHardVertices();
-            FastClear();
-
-            var points = _objModel.CalculatePoints();
-            foreach (var po in points)
-            {
-                foreach (var p in po)
-                {
-                    var column = (int)Math.Round(p.X);
-                    var row = (int)Math.Round(p.Y);
-
-                    if (column < 0 || row < 0 || column >= PixelWidth || row >= PixelHeight)
-                    {
-                        continue;
-                    }
-                    try
-                    {
-                        _bitMap.Lock();
-
-                        unsafe
-                        {
-                            var pBackBuffer = _bitMap.BackBuffer;
-                            pBackBuffer += row * _bitMap.BackBufferStride;
-                            pBackBuffer += column * 4;
-                            *((int*)pBackBuffer) = 0;
-                        }
-
-                        _bitMap.AddDirtyRect(new Int32Rect(column, row, 1, 1));
-                    }
-                    finally
-                    {
-                        _bitMap.Unlock();
-                    }
-                }
-            }
+            _model.TransformHardVertices();
+            Draw();
         }
 
         private void OnKeyDownHandler(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Add)
             { 
-                _objModel.Scale += 0.5f;
-                ShowModel();
+                _model.Scale += ScaleSpeed;
             }
 
             if (e.Key == Key.Subtract)
             {
-                _objModel.Scale -= 0.5f;
-                ShowModel();
+                _model.Scale -= ScaleSpeed;
             }
 
             if (e.Key == Key.Up)
             {
-                _objModel.TranslationY += 1f;
-                ShowModel();
+                _model.TranslationY += TranslationSpeed;
             }
 
             if (e.Key == Key.Down)
             {
-                _objModel.TranslationY -= 1f;
-                ShowModel();
+                _model.TranslationY -= TranslationSpeed;
             }
 
             if (e.Key == Key.Left)
             {
-                _objModel.TranslationX -= 1f;
-                ShowModel();
+                _model.TranslationX -= TranslationSpeed;
             }
 
             if (e.Key == Key.Right)
             {
-                _objModel.TranslationX += 1f;
-                ShowModel();
+                _model.TranslationX += TranslationSpeed;
             }
+
+
+            if (e.Key == Key.NumPad7)
+            {
+                _model.AngleX += AngleSpeed;
+            }
+
+            if (e.Key == Key.NumPad8)
+            {
+                _model.AngleX -= AngleSpeed;
+            }
+
+            if (e.Key == Key.NumPad4)
+            {
+                _model.AngleY += AngleSpeed;
+            }
+
+            if (e.Key == Key.NumPad5)
+            {
+                _model.AngleY -= AngleSpeed;
+            }
+
+            if (e.Key == Key.NumPad1)
+            {
+                _model.AngleZ += AngleSpeed;
+            }
+
+            if (e.Key == Key.NumPad2)
+            {
+                _model.AngleZ -= AngleSpeed;
+            }
+
+            ShowModel();
         }
     }
 }

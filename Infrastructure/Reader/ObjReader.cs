@@ -47,11 +47,8 @@ namespace Infrastructure.Reader
 
             }
 
-            objModel.Points = new List<List<Vector2>>(new List<Vector2>[objModel.PolygonalElements.Count]);
-            for (var i = 0; i < objModel.Points.Count; i++)
-            {
-                objModel.Points[i] = new List<Vector2>();
-            }
+            objModel.Points = new List<Vector2>();
+
             return objModel;
         }
     }
