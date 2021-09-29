@@ -8,7 +8,7 @@ namespace Infrastructure
     {
         public static List<Vector2> DdaLines(Vector4 coordinate1, Vector4 coordinate2)
         {
-            var l = (float)Math.Max(Math.Abs(Math.Round(coordinate1.X) - Math.Round(coordinate2.X)), Math.Abs(Math.Round(coordinate2.Y) - Math.Round(coordinate2.Y))) + 1;
+            var l = (float)Math.Max(Math.Abs(Math.Round(coordinate1.X) - Math.Round(coordinate2.X)), Math.Abs(Math.Round(coordinate1.Y) - Math.Round(coordinate2.Y))) + 1;
             var dx = (coordinate2.X - coordinate1.X) / l;
             var dy = (coordinate2.Y - coordinate1.Y) / l;
             var x = coordinate1.X;
