@@ -37,49 +37,7 @@ namespace PresentationApp
         private const float TranslationSpeed = 10f;
         private const double AngleSpeed = 0.25f;
 
-        private unsafe void Draw()
-        {
-            var points = _model.CalculatePoints();
-
-            fixed (byte* b = _image)
-            {
-                var ptr = (IntPtr)b;
-                fixed (byte* clear = _whiteImage)
-                {
-                    CopyMemory(ptr, (IntPtr)clear, (uint)_whiteImage.Length);
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        _imageBitMap.Lock();
-                        _imageBitMap.AddDirtyRect(new Int32Rect(0, 0, _imageBitMap.PixelWidth, _imageBitMap.PixelHeight));
-                        _imageBitMap.Unlock();
-                    });
-                }
-
-                Parallel.ForEach(_model.CalculatePoints(), (point, _) =>
-                {
-                    var column = (int)Math.Round(point.X);
-                    var row = (int)Math.Round(point.Y);
-                    if (column < 0 || row < 0 || column >= PixelWidth || row >= PixelHeight)
-                    {
-                        return;
-                    }
-
-                    var localPtr = ptr;
-                    localPtr += row * PixelWidth * RgbBytesPerPixel;
-                    localPtr += column * RgbBytesPerPixel;
-                    *((int*)localPtr) = 0;
-                });
-
-
-                CopyMemory(_imageBitMap.BackBuffer, (IntPtr)b, (uint)_image.Length);
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    _imageBitMap.Lock();
-                    _imageBitMap.AddDirtyRect(new Int32Rect(0, 0, _imageBitMap.PixelWidth, _imageBitMap.PixelHeight));
-                    _imageBitMap.Unlock();
-                });
-            }
-        }
+        
 
 
         public MainWindow()
@@ -126,7 +84,47 @@ namespace PresentationApp
         private void ShowModel()
         {
             _model.TransformHardVertices();
-            Draw();
+            unsafe 
+            {
+                fixed (byte* b = _image)
+                {
+                    var ptr = (IntPtr)b;
+                    fixed (byte* clear = _whiteImage)
+                    {
+                        CopyMemory(ptr, (IntPtr)clear, (uint)_whiteImage.Length);
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            _imageBitMap.Lock();
+                            _imageBitMap.AddDirtyRect(new Int32Rect(0, 0, _imageBitMap.PixelWidth, _imageBitMap.PixelHeight));
+                            _imageBitMap.Unlock();
+                        });
+                    }
+
+                    Parallel.ForEach(_model.CalculatePoints(), (point, _) =>
+                    {
+                        var column = (int)Math.Round(point.X);
+                        var row = (int)Math.Round(point.Y);
+                        if (column < 0 || row < 0 || column >= PixelWidth || row >= PixelHeight)
+                        {
+                            return;
+                        }
+
+                        var localPtr = ptr;
+                        localPtr += row * PixelWidth * RgbBytesPerPixel;
+                        localPtr += column * RgbBytesPerPixel;
+                        *((int*)localPtr) = 0;
+                    });
+
+
+                    CopyMemory(_imageBitMap.BackBuffer, (IntPtr)b, (uint)_image.Length);
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        _imageBitMap.Lock();
+                        _imageBitMap.AddDirtyRect(new Int32Rect(0, 0, _imageBitMap.PixelWidth, _imageBitMap.PixelHeight));
+                        _imageBitMap.Unlock();
+                    });
+                }
+            }
         }
 
         private void OnKeyDownHandler(object sender, KeyEventArgs e)
