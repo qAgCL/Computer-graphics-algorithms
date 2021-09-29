@@ -32,12 +32,12 @@ namespace Infrastructure.Models
             GeometricVertices = new Dictionary<uint, Vector4>();
             PolygonalElements = new List<PolygonalElement>();
             TransformGeometricVertices = new Dictionary<uint, Vector4>();
-            ScaleMatrix = new Matrix4x4(1000, 0, 0, 0, 0, 1000, 0, 0, 0, 0, 1000, 0, 0, 0, 0, 1);
-            RotationMatrix = new Matrix4x4((float)Math.Cos(1), -(float)Math.Sin(1), 0, 0, (float)Math.Sin(1), (float)Math.Cos(1), 0, 0, 0, 0, 1, 0, 0,0, 0, 1);
+            ScaleMatrix = new Matrix4x4(100, 0, 0, 0, 0, 100, 0, 0, 0, 0, 100, 0, 0, 0, 0, 1);
+            RotationMatrix = new Matrix4x4((float)Math.Cos(1), -(float)Math.Sin(1), 0, 0, (float)Math.Sin(1), (float)Math.Cos(1), 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 
-            ProjectionSpace = new ProjectionSpace(600, 300, 100f, 0.1f);
-            ViewPortSpace = new ViewPortSpace(600, 300, -0.1f, -0.1f);
-            ViewSpace = new ViewSpace(new Vector3(-1, 2, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+            ProjectionSpace = new ProjectionSpace(300, 300, 100f, 0.1f);
+            ViewPortSpace = new ViewPortSpace(300, 300, -0.1f, -0.1f);
+            ViewSpace = new ViewSpace(new Vector3(-100, 0, 0), new Vector3(0, 0, 1), new Vector3(-100, 1, 0));
         }
 
         public void TransformVertices()
@@ -53,8 +53,8 @@ namespace Infrastructure.Models
 
         public List<List<Vector2>> CalculatePoints()
         {
-            var polygons = new List<List<Vector2>>();
-            Parallel.ForEach(PolygonalElements, (polygonalElement) =>
+            var polygons = new List<List<Vector2>>( new List<Vector2>[PolygonalElements.Count]);
+            Parallel.ForEach(PolygonalElements, (polygonalElement, state, index) =>
             {
                 var points = new List<Vector2>();
                 for (var i = 0; i < polygonalElement.GeometricVertices.Count - 1; i++)
@@ -63,7 +63,7 @@ namespace Infrastructure.Models
                 }
 
                 points.AddRange(Viewer.DdaLines(TransformGeometricVertices[polygonalElement.GeometricVertices[^1]], TransformGeometricVertices[polygonalElement.GeometricVertices[0]]));
-                polygons.Add(points);
+                polygons[(int)index] = points;
             });
 
             return polygons;

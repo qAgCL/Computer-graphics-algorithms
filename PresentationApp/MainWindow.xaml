@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PresentationApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid x:Name="mainGrid">
+        Title="MainWindow" Height="1000" Width="1000">
+    <Image x:Name="Image">
 
-    </Grid>
+    </Image>
 </Window>
