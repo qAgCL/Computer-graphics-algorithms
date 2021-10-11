@@ -17,8 +17,10 @@ namespace Infrastructure.Models
         public readonly Dictionary<uint, Vector4> GeometricVertices;
         public readonly List<PolygonalElement> PolygonalElements;
 
+        public List<List<Vector2>> PointsPerPolygon;
         public List<Vector2> Points;
-        
+
+
         public readonly Dictionary<uint, Vector4> TransformGeometricVertices;
         public Matrix4x4 TransformMatrix;
 
@@ -53,6 +55,7 @@ namespace Infrastructure.Models
             PolygonalElements = new List<PolygonalElement>();
             TransformGeometricVertices = new Dictionary<uint, Vector4>();
 
+            Points = new List<Vector2>();
             Scale = 1;
         }
 
@@ -75,19 +78,24 @@ namespace Infrastructure.Models
 
         public List<Vector2> CalculatePoints()
         {
-            Points.Clear();
-
-            foreach (var polygonalElement in PolygonalElements)
+            Parallel.For(0, PolygonalElements.Count, ((i, state) =>
             {
-                for (var i = 0; i < polygonalElement.GeometricVertices.Count - 1; i++)
+                PointsPerPolygon[i].Clear();
+
+                for (var j = 0; j < PolygonalElements[i].GeometricVertices.Count - 1; j++)
                 {
-                    Points.AddRange(Viewer.DdaLines(TransformGeometricVertices[polygonalElement.GeometricVertices[i]], TransformGeometricVertices[polygonalElement.GeometricVertices[i + 1]]));
+                    PointsPerPolygon[i].AddRange(Viewer.DdaLines(TransformGeometricVertices[PolygonalElements[i].GeometricVertices[j]],
+                        TransformGeometricVertices[PolygonalElements[i].GeometricVertices[j+1]], Width, Height));
                 }
 
-                Points.AddRange(Viewer.DdaLines(TransformGeometricVertices[polygonalElement.GeometricVertices[^1]], TransformGeometricVertices[polygonalElement.GeometricVertices[0]]));
-            }
+                PointsPerPolygon[i].AddRange(Viewer.DdaLines(TransformGeometricVertices[PolygonalElements[i].GeometricVertices[^1]],
+                    TransformGeometricVertices[PolygonalElements[i].GeometricVertices[0]], Width, Height));
+            }));
 
-            return Points.ToList();
+            Points.Clear();
+            Points.AddRange(PointsPerPolygon.SelectMany(x => x));
+
+            return Points;
         }
     }
 }

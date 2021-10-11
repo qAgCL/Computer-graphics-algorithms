@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -37,6 +38,7 @@ namespace PresentationApp
         private const float TranslationSpeed = 10f;
         private const float AngleSpeed = 0.25f;
 
+
         public MainWindow()
         {
             InitializeComponent();
@@ -65,7 +67,7 @@ namespace PresentationApp
             Image.HorizontalAlignment = HorizontalAlignment.Left;
             Image.VerticalAlignment = VerticalAlignment.Top;
 
-            var objReader = new ObjFileReader(@"D:\AKГ\Crowbar.obj");
+            var objReader = new ObjFileReader(@"D:\7 сем\АКГ\mustang.obj");
             _model = objReader.ReadObjModel();
 
             _model.Height = PixelHeight;
@@ -73,7 +75,7 @@ namespace PresentationApp
 
             _model.ProjectionSpace = Matrix4x4.CreatePerspectiveFieldOfView((float)(Math.PI / 4), 1, 0.1f, 1);
 
-            var camPos = new Vector3(0, 0, 100);
+            var camPos = new Vector3(0, 0, 1000);
             var camTarget = new Vector3(0, 0, 0);
             var up = new Vector3(0, 1, 0);
             var camDirection = Vector3.Normalize(Vector3.Subtract(camPos, camTarget));
@@ -91,6 +93,7 @@ namespace PresentationApp
         private void ShowModel()
         {
             _model.TransformHardVertices();
+            var points = _model.CalculatePoints();
             var ptr = _imageBitMap.BackBuffer;
             unsafe 
             {
@@ -99,14 +102,10 @@ namespace PresentationApp
                     CopyMemory(ptr, (IntPtr)clear, (uint)_whiteImage.Length);
                 }
 
-                Parallel.ForEach(_model.CalculatePoints(), (point) =>
+                Parallel.ForEach(points, (point) =>
                 {
                     var column = (int)point.X;
                     var row = (int)point.Y;
-                    if (column < 0 || row < 0 || column >= PixelWidth || row >= PixelHeight)
-                    {
-                        return;
-                    }
 
                     var localPtr = ptr;
                     localPtr += row * PixelWidth * RgbBytesPerPixel;
@@ -154,7 +153,6 @@ namespace PresentationApp
             {
                 _model.TranslationX += TranslationSpeed;
             }
-
 
             if (e.Key == Key.NumPad7)
             {

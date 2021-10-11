@@ -14,7 +14,14 @@ namespace TestConsoleApp
     {
         static void Main(string[] args)
         {
-          
+
+            while (true)
+            {
+                var numb = float.Parse(Console.ReadLine());
+
+                Console.WriteLine((int)numb);
+            }
+
         }
 
     }

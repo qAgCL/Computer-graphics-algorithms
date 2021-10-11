@@ -47,7 +47,11 @@ namespace Infrastructure.Reader
 
             }
 
-            objModel.Points = new List<Vector2>();
+            objModel.PointsPerPolygon = new List<List<Vector2>>();
+            for (var i = 0; i < objModel.PolygonalElements.Count; i++)
+            {
+                objModel.PointsPerPolygon.Add(new List<Vector2>());
+            }
 
             return objModel;
         }
