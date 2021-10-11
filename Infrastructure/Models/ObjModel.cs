@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -57,23 +58,21 @@ namespace Infrastructure.Models
 
         public void TransformHardVertices()
         {
-            ScaleMatrix = Matrix4x4.Transpose(new Matrix4x4(Scale, 0, 0, 0, 0, Scale, 0, 0, 0, 0, Scale, 0, 0, 0, 0, 1));
+            ScaleMatrix = Matrix4x4.CreateScale(Scale);
             TranslationMatrix = Matrix4x4.Transpose(new Matrix4x4(1, 0, 0, TranslationX, 0, 1, 0, TranslationY, 0, 0, 1, TranslationZ, 0, 0, 0, 1));
             RotationMatrixX = Matrix4x4.Transpose(new Matrix4x4(1, 0, 0, 0, 0, (float)Math.Cos(AngleX), -(float)Math.Sin(AngleX), 0, 0, (float)Math.Sin(AngleX), (float)Math.Cos(AngleX), 0, 0, 0, 0, 1));
             RotationMatrixY = Matrix4x4.Transpose(new Matrix4x4((float)Math.Cos(AngleY), 0, (float)Math.Sin(AngleY), 0, 0, 1, 0, 0, -(float)Math.Sin(AngleY), 0, (float)Math.Cos(AngleY), 0, 0, 0, 0, 1));
             RotationMatrixZ = Matrix4x4.Transpose(new Matrix4x4((float)Math.Cos(AngleZ), -(float)Math.Sin(AngleZ), 0, 0, (float)Math.Sin(AngleZ), (float)Math.Cos(AngleZ), 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
 
-            TransformMatrix = ViewSpace * RotationMatrixX * RotationMatrixY * RotationMatrixZ * ScaleMatrix * TranslationMatrix * ProjectionSpace;
+            TransformMatrix =  RotationMatrixX * RotationMatrixY * RotationMatrixZ * ScaleMatrix * TranslationMatrix * ViewSpace * ProjectionSpace;
+
             Parallel.ForEach(GeometricVertices, (keyValuePair) =>
             {
-                TransformGeometricVertices[keyValuePair.Key] = Vector4.Transform(keyValuePair.Value, TransformMatrix);
+                var vector = Vector4.Transform(keyValuePair.Value, TransformMatrix);
+                vector = Vector4.Divide(vector, vector.W);
+                TransformGeometricVertices[keyValuePair.Key] = Vector4.Transform(vector, ViewPortSpace.TransposeMatrix);
             });
 
-            TransformMatrix = ViewPortSpace.TransposeMatrix;
-            Parallel.ForEach(TransformGeometricVertices, (keyValuePair) =>
-            {
-                TransformGeometricVertices[keyValuePair.Key] = Vector4.Transform(keyValuePair.Value, TransformMatrix);
-            });
         }
 
         public List<Vector2> CalculatePoints()

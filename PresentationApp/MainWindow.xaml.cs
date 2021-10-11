@@ -33,10 +33,9 @@ namespace PresentationApp
         private readonly byte[] _image = new byte[PixelHeight * PixelWidth * RgbBytesPerPixel];
         private readonly ObjModel _model;
 
-        private const float ScaleSpeed = 5f;
+        private const float ScaleSpeed = 1f;
         private const float TranslationSpeed = 10f;
         private const double AngleSpeed = 0.25f;
-
 
         public MainWindow()
         {
@@ -68,15 +67,26 @@ namespace PresentationApp
             RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.NearestNeighbor);
             RenderOptions.SetEdgeMode(Image, EdgeMode.Aliased);
 
-            var objReader = new ObjFileReader(@"D:\7 сем\АКГ\mclaren.obj");
+            var objReader = new ObjFileReader(@"D:\7 сем\АКГ\etstst.obj");
             _model = objReader.ReadObjModel();
 
             _model.Height = PixelHeight;
             _model.Width = PixelWidth;
 
-            _model.ProjectionSpace = Matrix4x4.CreatePerspective(PixelWidth, PixelHeight, 0.1f, 100f);
-            _model.ViewSpace = Matrix4x4.CreateLookAt(new Vector3(0, 0, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+            _model.ProjectionSpace = Matrix4x4.CreatePerspectiveFieldOfView((float)(Math.PI / 4), 1, 0.1f, 1);
+
+            var camPos = new Vector3(0, 0, 100);
+            var camTarget = new Vector3(0, 0, 0);
+            var up = new Vector3(0, 1, 0);
+            var camDirection = Vector3.Normalize(Vector3.Subtract(camPos, camTarget));
+            var camRight = Vector3.Normalize(Vector3.Cross(up, camDirection));
+            var camUp = Vector3.Cross(camDirection, camRight);
+
+            _model.ViewSpace = Matrix4x4.CreateLookAt(camPos, camTarget, camUp);
+
+
             _model.ViewPortSpace = new ViewPortSpace(PixelWidth, PixelHeight, 0, 0);
+
             ShowModel();
         }
 
@@ -99,7 +109,7 @@ namespace PresentationApp
                         });
                     }
 
-                    Parallel.ForEach(_model.CalculatePoints(), (point, _) =>
+                    foreach (var point in _model.CalculatePoints())
                     {
                         var column = (int)Math.Round(point.X);
                         var row = (int)Math.Round(point.Y);
@@ -112,8 +122,7 @@ namespace PresentationApp
                         localPtr += row * PixelWidth * RgbBytesPerPixel;
                         localPtr += column * RgbBytesPerPixel;
                         *((int*)localPtr) = 0;
-                    });
-
+                    }
 
                     CopyMemory(_imageBitMap.BackBuffer, (IntPtr)b, (uint)_image.Length);
                     Application.Current.Dispatcher.Invoke(() =>

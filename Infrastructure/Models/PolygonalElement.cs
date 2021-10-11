@@ -7,7 +7,7 @@ namespace Infrastructure.Models
     public class PolygonalElement
     {
         public const string Name = "f";
-        public const int MinArrayLength = 4;
+        public const int MinArrayLength = 2;
 
         public readonly List<uint> TextureCoordinates;
         public readonly List<uint> GeometricVertices;
