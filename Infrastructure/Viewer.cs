@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.ExceptionServices;
+using System.Threading.Tasks;
 
 namespace Infrastructure
 {
@@ -9,28 +12,16 @@ namespace Infrastructure
     {
         public static List<Vector2> DdaLines(Vector4 coordinate1, Vector4 coordinate2)
         {
-            var first = ((int)Math.Round(coordinate1.X), (int)Math.Round(coordinate1.Y));
-            var second = ((int)Math.Round(coordinate2.X), (int)Math.Round(coordinate2.Y));
-
             var result = new List<Vector2>();
    
-            var deltaX = Math.Abs(second.Item1 - first.Item1);
-            var deltaY = Math.Abs(second.Item2 - first.Item2);
+            var length = Math.Max(Math.Abs(coordinate1.X - coordinate2.X), Math.Abs(coordinate1.Y - coordinate2.Y));
+            var dx = (coordinate2.X - coordinate1.X) / length;
+            var dy = (coordinate2.Y - coordinate1.Y) / length;
 
-            var length = Math.Max(deltaX, deltaY);
-            if (length == 0)
-            {
-                result.Add(new Vector2(first.Item1, first.Item2));
-                return result;
-            }
+            var x = coordinate1.X;
+            var y = coordinate1.Y;
 
-            var dx = (second.Item1 - first.Item1) / (float)length;
-            var dy = (second.Item2 - first.Item2) / (float)length;
-
-            var x = (float) first.Item1;
-            var y = (float) first.Item2;
-
-            for (var i = 0; i < length + 1; i++)
+            for (var i = 0; i <= length; i++)
             {
                 result.Add(new Vector2(x, y));
                 x += dx;

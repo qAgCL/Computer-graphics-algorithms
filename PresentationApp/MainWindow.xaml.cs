@@ -35,7 +35,7 @@ namespace PresentationApp
 
         private const float ScaleSpeed = 1f;
         private const float TranslationSpeed = 10f;
-        private const double AngleSpeed = 0.25f;
+        private const float AngleSpeed = 0.25f;
 
         public MainWindow()
         {
@@ -64,10 +64,8 @@ namespace PresentationApp
             Image.Stretch = Stretch.None;
             Image.HorizontalAlignment = HorizontalAlignment.Left;
             Image.VerticalAlignment = VerticalAlignment.Top;
-            RenderOptions.SetBitmapScalingMode(Image, BitmapScalingMode.NearestNeighbor);
-            RenderOptions.SetEdgeMode(Image, EdgeMode.Aliased);
 
-            var objReader = new ObjFileReader(@"D:\7 сем\АКГ\etstst.obj");
+            var objReader = new ObjFileReader(@"D:\AKГ\Crowbar.obj");
             _model = objReader.ReadObjModel();
 
             _model.Height = PixelHeight;
@@ -93,45 +91,35 @@ namespace PresentationApp
         private void ShowModel()
         {
             _model.TransformHardVertices();
+            var ptr = _imageBitMap.BackBuffer;
             unsafe 
             {
-                fixed (byte* b = _image)
+                fixed (byte* clear = _whiteImage)
                 {
-                    var ptr = (IntPtr)b;
-                    fixed (byte* clear = _whiteImage)
-                    {
-                        CopyMemory(ptr, (IntPtr)clear, (uint)_whiteImage.Length);
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            _imageBitMap.Lock();
-                            _imageBitMap.AddDirtyRect(new Int32Rect(0, 0, _imageBitMap.PixelWidth, _imageBitMap.PixelHeight));
-                            _imageBitMap.Unlock();
-                        });
-                    }
-
-                    foreach (var point in _model.CalculatePoints())
-                    {
-                        var column = (int)Math.Round(point.X);
-                        var row = (int)Math.Round(point.Y);
-                        if (column < 0 || row < 0 || column >= PixelWidth || row >= PixelHeight)
-                        {
-                            return;
-                        }
-
-                        var localPtr = ptr;
-                        localPtr += row * PixelWidth * RgbBytesPerPixel;
-                        localPtr += column * RgbBytesPerPixel;
-                        *((int*)localPtr) = 0;
-                    }
-
-                    CopyMemory(_imageBitMap.BackBuffer, (IntPtr)b, (uint)_image.Length);
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        _imageBitMap.Lock();
-                        _imageBitMap.AddDirtyRect(new Int32Rect(0, 0, _imageBitMap.PixelWidth, _imageBitMap.PixelHeight));
-                        _imageBitMap.Unlock();
-                    });
+                    CopyMemory(ptr, (IntPtr)clear, (uint)_whiteImage.Length);
                 }
+
+                Parallel.ForEach(_model.CalculatePoints(), (point) =>
+                {
+                    var column = (int)point.X;
+                    var row = (int)point.Y;
+                    if (column < 0 || row < 0 || column >= PixelWidth || row >= PixelHeight)
+                    {
+                        return;
+                    }
+
+                    var localPtr = ptr;
+                    localPtr += row * PixelWidth * RgbBytesPerPixel;
+                    localPtr += column * RgbBytesPerPixel;
+                    *((int*)localPtr) = 0;
+                });
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    _imageBitMap.Lock();
+                    _imageBitMap.AddDirtyRect(new Int32Rect(0, 0, _imageBitMap.PixelWidth, _imageBitMap.PixelHeight));
+                    _imageBitMap.Unlock();
+                });
             }
         }
 

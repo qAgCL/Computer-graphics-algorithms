@@ -40,9 +40,9 @@ namespace Infrastructure.Models
         public float TranslationZ { get; set; }
 
         public float Scale { get; set; }
-        public double AngleX { get; set; }
-        public double AngleZ { get; set; }
-        public double AngleY { get; set; }
+        public float AngleX { get; set; }
+        public float AngleZ { get; set; }
+        public float AngleY { get; set; }
 
         public ObjModel()
         {
@@ -59,25 +59,24 @@ namespace Infrastructure.Models
         public void TransformHardVertices()
         {
             ScaleMatrix = Matrix4x4.CreateScale(Scale);
-            TranslationMatrix = Matrix4x4.Transpose(new Matrix4x4(1, 0, 0, TranslationX, 0, 1, 0, TranslationY, 0, 0, 1, TranslationZ, 0, 0, 0, 1));
-            RotationMatrixX = Matrix4x4.Transpose(new Matrix4x4(1, 0, 0, 0, 0, (float)Math.Cos(AngleX), -(float)Math.Sin(AngleX), 0, 0, (float)Math.Sin(AngleX), (float)Math.Cos(AngleX), 0, 0, 0, 0, 1));
-            RotationMatrixY = Matrix4x4.Transpose(new Matrix4x4((float)Math.Cos(AngleY), 0, (float)Math.Sin(AngleY), 0, 0, 1, 0, 0, -(float)Math.Sin(AngleY), 0, (float)Math.Cos(AngleY), 0, 0, 0, 0, 1));
-            RotationMatrixZ = Matrix4x4.Transpose(new Matrix4x4((float)Math.Cos(AngleZ), -(float)Math.Sin(AngleZ), 0, 0, (float)Math.Sin(AngleZ), (float)Math.Cos(AngleZ), 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
+            TranslationMatrix = Matrix4x4.CreateTranslation(TranslationX, TranslationY, TranslationZ);
+            RotationMatrixX = Matrix4x4.CreateRotationX(AngleX);
+            RotationMatrixY = Matrix4x4.CreateRotationY(AngleY);
+            RotationMatrixZ = Matrix4x4.CreateRotationZ(AngleZ);
 
             TransformMatrix =  RotationMatrixX * RotationMatrixY * RotationMatrixZ * ScaleMatrix * TranslationMatrix * ViewSpace * ProjectionSpace;
-
             Parallel.ForEach(GeometricVertices, (keyValuePair) =>
             {
                 var vector = Vector4.Transform(keyValuePair.Value, TransformMatrix);
                 vector = Vector4.Divide(vector, vector.W);
                 TransformGeometricVertices[keyValuePair.Key] = Vector4.Transform(vector, ViewPortSpace.TransposeMatrix);
             });
-
         }
 
         public List<Vector2> CalculatePoints()
         {
             Points.Clear();
+
             foreach (var polygonalElement in PolygonalElements)
             {
                 for (var i = 0; i < polygonalElement.GeometricVertices.Count - 1; i++)
