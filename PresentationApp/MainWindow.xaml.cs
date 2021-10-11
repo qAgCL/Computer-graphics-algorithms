@@ -37,8 +37,6 @@ namespace PresentationApp
         private const float TranslationSpeed = 10f;
         private const double AngleSpeed = 0.25f;
 
-        
-
 
         public MainWindow()
         {
@@ -76,8 +74,9 @@ namespace PresentationApp
             _model.Height = PixelHeight;
             _model.Width = PixelWidth;
 
-            _model.ProjectionSpace = new ProjectionSpace(PixelWidth, PixelHeight, 100f, 0.1f);
-            _model.ViewSpace = new ViewSpace(new Vector3(0, 0, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+            _model.ProjectionSpace = Matrix4x4.CreatePerspective(PixelWidth, PixelHeight, 0.1f, 100f);
+            _model.ViewSpace = Matrix4x4.CreateLookAt(new Vector3(0, 0, 1), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+            _model.ViewPortSpace = new ViewPortSpace(PixelWidth, PixelHeight, 0, 0);
             ShowModel();
         }
 

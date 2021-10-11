@@ -21,8 +21,8 @@ namespace Infrastructure.Models
         public readonly Dictionary<uint, Vector4> TransformGeometricVertices;
         public Matrix4x4 TransformMatrix;
 
-        public ProjectionSpace ProjectionSpace { get; set; }
-        public ViewSpace ViewSpace { get; set; }
+        public Matrix4x4 ProjectionSpace { get; set; }
+        public Matrix4x4 ViewSpace { get; set; }
         public ViewPortSpace ViewPortSpace { get; set; }
 
         public Matrix4x4 ScaleMatrix { get; set; }
@@ -63,17 +63,11 @@ namespace Infrastructure.Models
             RotationMatrixY = Matrix4x4.Transpose(new Matrix4x4((float)Math.Cos(AngleY), 0, (float)Math.Sin(AngleY), 0, 0, 1, 0, 0, -(float)Math.Sin(AngleY), 0, (float)Math.Cos(AngleY), 0, 0, 0, 0, 1));
             RotationMatrixZ = Matrix4x4.Transpose(new Matrix4x4((float)Math.Cos(AngleZ), -(float)Math.Sin(AngleZ), 0, 0, (float)Math.Sin(AngleZ), (float)Math.Cos(AngleZ), 0, 0, 0, 0, 1, 0, 0, 0, 0, 1));
 
-
-            TransformMatrix = ViewSpace.TransposeMatrix * RotationMatrixX * RotationMatrixY * RotationMatrixZ * ScaleMatrix * TranslationMatrix * ProjectionSpace.TransposeMatrix;
+            TransformMatrix = ViewSpace * RotationMatrixX * RotationMatrixY * RotationMatrixZ * ScaleMatrix * TranslationMatrix * ProjectionSpace;
             Parallel.ForEach(GeometricVertices, (keyValuePair) =>
             {
                 TransformGeometricVertices[keyValuePair.Key] = Vector4.Transform(keyValuePair.Value, TransformMatrix);
             });
-
-            var xMin = TransformGeometricVertices.AsParallel().Select(x => x.Value.X).Min();
-            var yMin = TransformGeometricVertices.AsParallel().Select(x => x.Value.Y).Min();
-
-            ViewPortSpace = new ViewPortSpace(Width, Height, xMin, yMin);
 
             TransformMatrix = ViewPortSpace.TransposeMatrix;
             Parallel.ForEach(TransformGeometricVertices, (keyValuePair) =>
