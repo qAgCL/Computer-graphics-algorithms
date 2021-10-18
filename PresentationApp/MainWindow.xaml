@@ -6,9 +6,7 @@
         xmlns:local="clr-namespace:PresentationApp"
         mc:Ignorable="d"
         Title="MainWindow" Height="1211" Width="1897">
-    <Border BorderThickness="1" Height="1000" Width="1000" BorderBrush="#FF000000">
         <Image x:Name="Image" Height="1000" Width="1000"  >
         </Image>
-    </Border>
 
 </Window>

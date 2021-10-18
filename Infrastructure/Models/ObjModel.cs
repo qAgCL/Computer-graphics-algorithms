@@ -68,29 +68,34 @@ namespace Infrastructure.Models
             RotationMatrixZ = Matrix4x4.CreateRotationZ(AngleZ);
 
             TransformMatrix =  RotationMatrixX * RotationMatrixY * RotationMatrixZ * ScaleMatrix * TranslationMatrix * ViewSpace * ProjectionSpace;
-            Parallel.ForEach(GeometricVertices, (keyValuePair) =>
+            Parallel.ForEach(Partitioner.Create(GeometricVertices.Keys), key =>
             {
-                var vector = Vector4.Transform(keyValuePair.Value, TransformMatrix);
+                var vector = Vector4.Transform(GeometricVertices[key], TransformMatrix);
                 vector = Vector4.Divide(vector, vector.W);
-                TransformGeometricVertices[keyValuePair.Key] = Vector4.Transform(vector, ViewPortSpace.TransposeMatrix);
+                TransformGeometricVertices[key] = Vector4.Transform(vector, ViewPortSpace.TransposeMatrix);
             });
+
         }
 
         public List<Vector2> CalculatePoints()
         {
-            Parallel.For(0, PolygonalElements.Count, ((i, state) =>
+            
+            Parallel.ForEach(Partitioner.Create(0, PolygonalElements.Count),  range =>
             {
-                PointsPerPolygon[i].Clear();
-
-                for (var j = 0; j < PolygonalElements[i].GeometricVertices.Count - 1; j++)
+                for (var i = range.Item1; i < range.Item2; i++)
                 {
-                    PointsPerPolygon[i].AddRange(Viewer.DdaLines(TransformGeometricVertices[PolygonalElements[i].GeometricVertices[j]],
-                        TransformGeometricVertices[PolygonalElements[i].GeometricVertices[j+1]], Width, Height));
-                }
+                    PointsPerPolygon[i].Clear();
 
-                PointsPerPolygon[i].AddRange(Viewer.DdaLines(TransformGeometricVertices[PolygonalElements[i].GeometricVertices[^1]],
-                    TransformGeometricVertices[PolygonalElements[i].GeometricVertices[0]], Width, Height));
-            }));
+                    for (var j = 0; j < PolygonalElements[i].GeometricVertices.Count - 1; j++)
+                    {
+                        PointsPerPolygon[i].AddRange(Viewer.DdaLines(TransformGeometricVertices[PolygonalElements[i].GeometricVertices[j]],
+                            TransformGeometricVertices[PolygonalElements[i].GeometricVertices[j + 1]], Width, Height));
+                    }
+
+                    PointsPerPolygon[i].AddRange(Viewer.DdaLines(TransformGeometricVertices[PolygonalElements[i].GeometricVertices[^1]],
+                        TransformGeometricVertices[PolygonalElements[i].GeometricVertices[0]], Width, Height));
+                }
+            });
 
             Points.Clear();
             Points.AddRange(PointsPerPolygon.SelectMany(x => x));
